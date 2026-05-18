@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>非遗详情 - 山海拾遗</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="page-header">
+    <h1 id="pageTitle">非遗详情</h1>
+    <p>了解非遗项目背后的故事</p>
+    <a href="map.html" class="back-link">返回非遗地图</a>
+  </header>
+
+  <main class="detail">
+    <article class="detail-card" id="detailCard"></article>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const item = heritageList.find(i => i.id === id) || heritageList[0];
+
+    document.getElementById("pageTitle").innerText = item.name;
+
+    document.getElementById("detailCard").innerHTML = `
+      <h2>${item.name}</h2>
+      <p>
+        ${item.tags.map(tag => `<span class="badge">${tag}</span>`).join("")}
+      </p>
+      <p><strong>所属地区：</strong>${item.area}</p>
+      <p><strong>项目类别：</strong>${item.category}</p>
+      <br />
+      <h3>项目简介</h3>
+      <p>${item.intro}</p>
+      <br />
+      <h3>传承故事</h3>
+      <p>${item.story}</p>
+      <br />
+      <h3>后续展示计划</h3>
+      <p>
+        团队将在实地调研过程中进一步补充图片、视频、访谈资料、制作流程和互动体验内容，
+        推动该非遗项目从线下展示走向线上传播。
+      </p>
+      <br />
+      <a href="game.html" class="btn primary">进入非遗体验小游戏</a>
+    `;
+  </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>非遗地图 - 山海拾遗</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="page-header">
+    <h1>非遗地图</h1>
+    <p>点击地图点位，了解对应非遗项目</p>
+    <a href="index.html" class="back-link">返回首页</a>
+  </header>
+
+  <main>
+    <section class="map-box">
+      <div class="map-placeholder" id="map">
+        <div class="map-title">博罗非遗地图 · 试运行版</div>
+      </div>
+    </section>
+
+    <section class="list" id="heritageList"></section>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script>
+    const map = document.getElementById("map");
+    const list = document.getElementById("heritageList");
+
+    heritageList.forEach(item => {
+      const point = document.createElement("a");
+      point.className = "map-point";
+      point.href = `detail.html?id=${item.id}`;
+      point.style.top = item.locationTop;
+      point.style.left = item.locationLeft;
+      point.innerText = item.name;
+      map.appendChild(point);
+
+      const card = document.createElement("a");
+      card.className = "item";
+      card.href = `detail.html?id=${item.id}`;
+      card.innerHTML = `
+        <h3>${item.name}</h3>
+        <p><strong>类别：</strong>${item.category}</p>
+        <p><strong>地区：</strong>${item.area}</p>
+        <p>${item.intro}</p>
+      `;
+      list.appendChild(card);
+    });
+  </script>
+</body>
+</html>

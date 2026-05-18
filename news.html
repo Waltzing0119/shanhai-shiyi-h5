@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>宣传栏 - 山海拾遗</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="page-header">
+    <h1>宣传栏</h1>
+    <p>非遗资讯、实践动态、合作招募</p>
+    <a href="index.html" class="back-link">返回首页</a>
+  </header>
+
+  <main class="list" id="newsList"></main>
+
+  <script src="js/data.js"></script>
+  <script>
+    const newsContainer = document.getElementById("newsList");
+
+    newsList.forEach(news => {
+      const item = document.createElement("article");
+      item.className = "item";
+      item.innerHTML = `
+        <h3>${news.title}</h3>
+        <p><strong>发布时间：</strong>${news.date}</p>
+        <p>${news.content}</p>
+      `;
+      newsContainer.appendChild(item);
+    });
+  </script>
+</body>
+</html>
