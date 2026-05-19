@@ -16,7 +16,7 @@ let currentQuestions = [];
 let currentIndex = 0;
 let answers = [];
 
-const dimensionPairs = [
+const testDimensionPairs = [
   ["E", "I"],
   ["H", "C"],
   ["L", "T"],
@@ -161,7 +161,7 @@ function calculateRawScores() {
 function calculatePercentScores(rawScores) {
   const percentScores = {};
 
-  dimensionPairs.forEach(pair => {
+  testDimensionPairs.forEach(pair => {
     const left = pair[0];
     const right = pair[1];
 
@@ -385,11 +385,42 @@ function showResult() {
   });
 }
 
+let selectedMode = "standard";
+
+const selectedModeText = document.getElementById("selectedModeText");
+const startSelectedModeBtn = document.getElementById("startSelectedMode");
+
+function updateSelectedMode(mode) {
+  selectedMode = mode;
+
+  document.querySelectorAll(".mode-card").forEach(button => {
+    if (button.dataset.mode === mode) {
+      button.classList.add("selected");
+    } else {
+      button.classList.remove("selected");
+    }
+  });
+
+  const config = shiyiModeConfig[mode];
+
+  if (selectedModeText && config) {
+    selectedModeText.innerText = `已选择：${config.name}｜${config.desc}`;
+  }
+}
+
 document.querySelectorAll(".mode-card").forEach(button => {
   button.onclick = () => {
-    startTest(button.dataset.mode);
+    updateSelectedMode(button.dataset.mode);
   };
 });
+
+if (startSelectedModeBtn) {
+  startSelectedModeBtn.onclick = () => {
+    startTest(selectedMode);
+  };
+}
+
+updateSelectedMode(selectedMode);
 
 nextBtn.onclick = goToNextQuestion;
 prevBtn.onclick = goToPreviousQuestion;

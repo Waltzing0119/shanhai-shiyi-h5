@@ -957,3 +957,29 @@ footer {
     height: 32px;
   }
 }
+
+.mode-card.selected {
+  border-color: #8b2e1f;
+  background: #fff3e5;
+  box-shadow: 0 8px 22px rgba(139, 46, 31, 0.14);
+}
+
+.selected-mode-panel {
+  margin-top: 24px;
+  padding: 18px;
+  background: #fff6e9;
+  border: 1px solid #f0dfc6;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.selected-mode-panel p {
+  color: #8b2e1f;
+  font-weight: bold;
+  margin-bottom: 14px;
+}
+
+.start-test-btn {
+  min-width: 160px;
+  text-align: center;
+}

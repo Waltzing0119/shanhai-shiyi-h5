@@ -8,14 +8,13 @@
 </head>
 <body>
   <header class="page-header">
-    <h1>拾遗人格测评</h1>
-    <p>从性格、兴趣与特长出发，找到适合你的非遗方向</p>
+    <h1>非遗FYBI测评</h1>
+    <p>测测你的拾遗人格，找到适合你的非遗方向</p>
     <a href="index.html" class="back-link">返回首页</a>
   </header>
-
   <main class="game-box shiyi-test-box">
     <section class="question-card shiyi-start-card" id="startScreen">
-      <p class="test-kicker">山海拾遗 · 非遗人格系统</p>
+      <p class="test-kicker">山海拾遗 · 非遗FYBI测评系统</p>
       <h2>测测你是哪种非遗守护人</h2>
       <p class="test-intro">
         本测评基于 E/I、H/C、L/T、M/P 四组维度，
@@ -28,7 +27,7 @@
           <span class="mode-desc">20题｜约3分钟｜快速了解自己</span>
         </button>
 
-        <button class="mode-card recommended" type="button" data-mode="standard">
+        <button class="mode-card recommended selected" type="button" data-mode="standard">
           <span class="mode-badge">推荐</span>
           <span class="mode-title">标准版</span>
           <span class="mode-desc">50题｜约8分钟｜生成完整报告</span>
@@ -37,6 +36,13 @@
         <button class="mode-card" type="button" data-mode="deep">
           <span class="mode-title">深测版</span>
           <span class="mode-desc">100题｜约15分钟｜适合深度探索</span>
+        </button>
+      </div>
+
+      <div class="selected-mode-panel">
+        <p id="selectedModeText">已选择：标准版｜50题｜约8分钟｜生成完整报告</p>
+        <button class="btn primary red start-test-btn" id="startSelectedMode" type="button">
+          开始测评
         </button>
       </div>
     </section>
