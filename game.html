@@ -3,26 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>非遗体验小游戏 - 山海拾遗</title>
+  <title>拾遗人格测评 - 山海拾遗</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <header class="page-header">
-    <h1>非遗体验小游戏</h1>
-    <p>完成答题，成为非遗守护人</p>
+    <h1>拾遗人格测评</h1>
+    <p>从性格、兴趣与特长出发，找到适合你的非遗方向</p>
     <a href="index.html" class="back-link">返回首页</a>
   </header>
 
-  <main class="game-box">
-    <section class="question-card">
+  <main class="game-box shiyi-test-box">
+    <section class="question-card shiyi-start-card" id="startScreen">
+      <p class="test-kicker">山海拾遗 · 非遗人格系统</p>
+      <h2>测测你是哪种非遗守护人</h2>
+      <p class="test-intro">
+        本测评基于 E/I、H/C、L/T、M/P 四组维度，
+        通过符合程度量表生成你的拾遗人格代码、类型报告与非遗项目推荐。
+      </p>
+
+      <div class="mode-grid">
+        <button class="mode-card" type="button" data-mode="quick">
+          <span class="mode-title">轻测版</span>
+          <span class="mode-desc">20题｜约3分钟｜快速了解自己</span>
+        </button>
+
+        <button class="mode-card recommended" type="button" data-mode="standard">
+          <span class="mode-badge">推荐</span>
+          <span class="mode-title">标准版</span>
+          <span class="mode-desc">50题｜约8分钟｜生成完整报告</span>
+        </button>
+
+        <button class="mode-card" type="button" data-mode="deep">
+          <span class="mode-title">深测版</span>
+          <span class="mode-desc">100题｜约15分钟｜适合深度探索</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="question-card shiyi-question-card hidden" id="questionScreen">
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span id="modeName">标准版</span>
+          <span id="questionProgress">1 / 50</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+
+      <p class="scale-tip">请根据你的真实感受选择符合程度。</p>
       <h2 id="questionTitle">题目加载中...</h2>
-      <div id="options"></div>
-      <p id="feedback"></p>
-      <br />
-      <button class="btn primary" id="nextBtn">下一题</button>
+
+      <div class="scale-options" id="options"></div>
+
+      <div class="question-actions">
+        <button class="btn secondary dark" id="prevBtn" type="button">上一题</button>
+        <button class="btn primary red" id="nextBtn" type="button">下一题</button>
+      </div>
+    </section>
+
+    <section class="question-card shiyi-result-card hidden" id="resultScreen">
+      <div id="resultContent"></div>
     </section>
   </main>
 
+  <script src="js/shiyi-questions.js"></script>
+  <script src="js/shiyi-profiles.js"></script>
+  <script src="js/national-heritage-projects.js"></script>
+  <script src="js/shiyi-recommender.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

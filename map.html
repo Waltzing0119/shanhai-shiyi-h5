@@ -9,45 +9,363 @@
 <body>
   <header class="page-header">
     <h1>非遗地图</h1>
-    <p>点击地图点位，了解对应非遗项目</p>
+    <p>点击地图聚合点或非遗点位，了解对应内容</p>
     <a href="index.html" class="back-link">返回首页</a>
   </header>
 
   <main>
     <section class="map-box">
-      <div class="map-placeholder" id="map">
-        <div class="map-title">博罗非遗地图 · 试运行版</div>
+      <div class="map-toolbar">
+        <button id="zoomIn" type="button">＋</button>
+        <button id="zoomOut" type="button">－</button>
+        <button id="resetMap" type="button">复位</button>
       </div>
+
+      <div class="map-viewport" id="mapViewport">
+        <div class="map-canvas" id="mapCanvas">
+          <img src="images/map-boluo.jpg" alt="博罗非遗地图" class="map-image" />
+          <div class="map-markers" id="mapMarkers"></div>
+        </div>
+      </div>
+
+      <p class="map-tip" id="mapTip">当前为县级总览。可点击“＋”或县级聚合点，查看镇级总览和具体项目分布。</p>
     </section>
 
-    <section class="list" id="heritageList"></section>
+    <section class="list">
+      <h2 class="list-title" id="heritageListTitle">全部非遗项目</h2>
+      <div id="heritageList"></div>
+    </section>
   </main>
 
   <script src="js/data.js"></script>
   <script>
-    const map = document.getElementById("map");
+    const mapCanvas = document.getElementById("mapCanvas");
+    const mapViewport = document.getElementById("mapViewport");
+    const mapMarkers = document.getElementById("mapMarkers");
     const list = document.getElementById("heritageList");
+    const listTitle = document.getElementById("heritageListTitle");
+    const mapTip = document.getElementById("mapTip");
 
-    heritageList.forEach(item => {
-      const point = document.createElement("a");
-      point.className = "map-point";
-      point.href = `detail.html?id=${item.id}`;
-      point.style.top = item.locationTop;
-      point.style.left = item.locationLeft;
-      point.innerText = item.name;
-      map.appendChild(point);
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
 
-      const card = document.createElement("a");
-      card.className = "item";
-      card.href = `detail.html?id=${item.id}`;
-      card.innerHTML = `
-        <h3>${item.name}</h3>
-        <p><strong>类别：</strong>${item.category}</p>
-        <p><strong>地区：</strong>${item.area}</p>
-        <p>${item.intro}</p>
-      `;
-      list.appendChild(card);
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    const countyCluster = {
+      name: "博罗县",
+      locationTop: "50%",
+      locationLeft: "50%"
+    };
+
+    const townScale = 1.4;
+    const pointScale = 2.2;
+
+    const levelOrder = {
+      "国家级": 1,
+      "省级": 2,
+      "市级": 3,
+      "区级": 4,
+      "县级": 4,
+      "待补充": 99
+    };
+
+    function getCurrentLayer() {
+      if (scale < townScale) {
+        return "county";
+      }
+
+      if (scale < pointScale) {
+        return "town";
+      }
+
+      return "point";
+    }
+
+    function getSortedHeritageList(items) {
+      return [...items].sort((a, b) => {
+        const levelA = levelOrder[a.heritageLevel] || 99;
+        const levelB = levelOrder[b.heritageLevel] || 99;
+
+        if (levelA !== levelB) {
+          return levelA - levelB;
+        }
+
+        return (b.popularity || 0) - (a.popularity || 0);
+      });
+    }
+
+    function getTownCount(townName) {
+      return heritageList.filter(item => item.town === townName).length;
+    }
+
+    function clearMarkers() {
+      mapMarkers.innerHTML = "";
+    }
+
+    function getMarkerInverseScale() {
+      return 1 / scale;
+    }
+
+    function updateMarkerSize() {
+      const markers = document.querySelectorAll(".map-marker");
+      const inverseScale = getMarkerInverseScale();
+
+      markers.forEach(marker => {
+        marker.style.transform = `translate(-50%, -50%) scale(${inverseScale})`;
+      });
+    }
+
+    function createMarker({ text, top, left, className, onClick, href }) {
+      let marker;
+
+      if (href) {
+        marker = document.createElement("a");
+        marker.href = href;
+      } else {
+        marker = document.createElement("button");
+        marker.type = "button";
+      }
+
+      marker.className = className;
+      marker.style.top = top;
+      marker.style.left = left;
+      marker.innerText = text;
+      marker.style.transform = `translate(-50%, -50%) scale(${getMarkerInverseScale()})`;
+
+      if (onClick) {
+        marker.onclick = onClick;
+      }
+
+      mapMarkers.appendChild(marker);
+    }
+
+    function parsePercent(value) {
+      return Number(String(value).replace("%", ""));
+    }
+
+    function isItemVisibleInViewport(item) {
+      const canvasRect = mapCanvas.getBoundingClientRect();
+      const viewportRect = mapViewport.getBoundingClientRect();
+
+      const pointX = canvasRect.left + canvasRect.width * parsePercent(item.locationLeft) / 100;
+      const pointY = canvasRect.top + canvasRect.height * parsePercent(item.locationTop) / 100;
+
+      return (
+        pointX >= viewportRect.left &&
+        pointX <= viewportRect.right &&
+        pointY >= viewportRect.top &&
+        pointY <= viewportRect.bottom
+      );
+    }
+
+    function getVisibleHeritageItems() {
+      return heritageList.filter(item => isItemVisibleInViewport(item));
+    }
+
+    function renderCountyLayer() {
+      clearMarkers();
+
+      createMarker({
+        text: `${countyCluster.name} · 共 ${heritageList.length} 项非遗`,
+        top: countyCluster.locationTop,
+        left: countyCluster.locationLeft,
+        className: "map-marker county-marker",
+        onClick: () => {
+          scale = townScale;
+          updateMapTransform();
+          renderMapLayer();
+        }
+      });
+
+      mapTip.innerText = "当前为县级总览。可点击“＋”或县级聚合点，查看镇级总览和具体项目分布。";
+    }
+
+    function renderTownLayer() {
+      clearMarkers();
+
+      townClusters.forEach(town => {
+        const count = getTownCount(town.name);
+
+        if (count === 0) return;
+
+        createMarker({
+          text: `${town.name} · ${count} 项`,
+          top: town.locationTop,
+          left: town.locationLeft,
+          className: "map-marker town-marker",
+          onClick: () => {
+            scale = pointScale;
+            updateMapTransform();
+            renderMapLayer();
+          }
+        });
+      });
+
+      mapTip.innerText = "当前为镇级总览。可点击“＋”或镇级聚合点，继续查看具体非遗项目位置。";
+    }
+
+    function renderPointLayer() {
+      clearMarkers();
+
+      heritageList.forEach(item => {
+        createMarker({
+          text: item.name,
+          top: item.locationTop,
+          left: item.locationLeft,
+          className: "map-marker heritage-marker",
+          href: `detail.html?id=${item.id}`
+        });
+      });
+
+      mapTip.innerText = "当前为具体项目分布。下方仅推荐当前画面范围内可见的非遗项目；拖动地图可切换查看区域。";
+    }
+
+    function renderMapLayer() {
+      const layer = getCurrentLayer();
+
+      if (layer === "county") {
+        renderCountyLayer();
+      } else if (layer === "town") {
+        renderTownLayer();
+      } else {
+        renderPointLayer();
+      }
+
+      updateMarkerSize();
+      renderHeritageList();
+    }
+
+    function renderHeritageList() {
+      const layer = getCurrentLayer();
+      let items = [];
+
+      if (layer === "county") {
+        items = getSortedHeritageList(heritageList);
+        listTitle.innerText = "全部非遗项目";
+      } else if (layer === "town") {
+        items = getSortedHeritageList(heritageList);
+        listTitle.innerText = "当前镇级总览涉及项目";
+      } else {
+        items = getSortedHeritageList(getVisibleHeritageItems());
+        listTitle.innerText = "当前画面内可见项目";
+      }
+
+      list.innerHTML = "";
+
+      if (items.length === 0) {
+        list.innerHTML = `
+          <div class="item empty-item">
+            <h3>当前画面暂无可见项目</h3>
+            <p>可以拖动地图或点击“复位”后重新查看。</p>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement("a");
+        card.className = "item";
+        card.href = `detail.html?id=${item.id}`;
+
+        const levelText = item.heritageLevel || "待补充";
+
+        card.innerHTML = `
+          <h3>${item.name}</h3>
+          <p><strong>级别：</strong>${levelText}</p>
+          <p><strong>类别：</strong>${item.category}</p>
+          <p><strong>地区：</strong>${item.area}</p>
+          <p>${item.intro}</p>
+        `;
+
+        list.appendChild(card);
+      });
+    }
+
+    function updateMapTransform() {
+      mapCanvas.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      updateMarkerSize();
+    }
+
+    function zoomMap(delta) {
+      scale = Math.min(3, Math.max(1, scale + delta));
+
+      if (scale === 1) {
+        translateX = 0;
+        translateY = 0;
+      }
+
+      updateMapTransform();
+      renderMapLayer();
+    }
+
+    document.getElementById("zoomIn").onclick = () => zoomMap(0.2);
+    document.getElementById("zoomOut").onclick = () => zoomMap(-0.2);
+
+    document.getElementById("resetMap").onclick = () => {
+      scale = 1;
+      translateX = 0;
+      translateY = 0;
+      updateMapTransform();
+      renderMapLayer();
+    };
+
+    mapViewport.addEventListener("wheel", event => {
+      event.preventDefault();
+
+      if (event.deltaY < 0) {
+        zoomMap(0.15);
+      } else {
+        zoomMap(-0.15);
+      }
     });
+
+    mapViewport.addEventListener("mousedown", event => {
+      isDragging = true;
+      startX = event.clientX - translateX;
+      startY = event.clientY - translateY;
+      mapViewport.style.cursor = "grabbing";
+    });
+
+    window.addEventListener("mousemove", event => {
+      if (!isDragging) return;
+
+      translateX = event.clientX - startX;
+      translateY = event.clientY - startY;
+      updateMapTransform();
+      renderHeritageList();
+    });
+
+    window.addEventListener("mouseup", () => {
+      isDragging = false;
+      mapViewport.style.cursor = "grab";
+    });
+
+    mapViewport.addEventListener("touchstart", event => {
+      if (event.touches.length !== 1) return;
+
+      isDragging = true;
+      startX = event.touches[0].clientX - translateX;
+      startY = event.touches[0].clientY - translateY;
+    });
+
+    mapViewport.addEventListener("touchmove", event => {
+      if (!isDragging || event.touches.length !== 1) return;
+
+      event.preventDefault();
+      translateX = event.touches[0].clientX - startX;
+      translateY = event.touches[0].clientY - startY;
+      updateMapTransform();
+      renderHeritageList();
+    });
+
+    mapViewport.addEventListener("touchend", () => {
+      isDragging = false;
+    });
+
+    renderMapLayer();
   </script>
 </body>
 </html>

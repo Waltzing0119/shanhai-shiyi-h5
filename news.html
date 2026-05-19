@@ -8,27 +8,87 @@
 </head>
 <body>
   <header class="page-header">
-    <h1>宣传栏</h1>
-    <p>非遗资讯、实践动态、合作招募</p>
-    <a href="index.html" class="back-link">返回首页</a>
+    <h1 id="newsTitle">宣传栏</h1>
+    <p id="newsSubtitle">平台动态、项目进展、合作招募</p>
+    <a href="index.html" class="back-link" id="backLink">返回首页</a>
   </header>
 
-  <main class="list" id="newsList"></main>
+  <main class="list" id="newsContainer"></main>
 
   <script src="js/data.js"></script>
   <script>
-    const newsContainer = document.getElementById("newsList");
+    const params = new URLSearchParams(window.location.search);
+    const sectionId = params.get("section");
+    const container = document.getElementById("newsContainer");
+    const newsTitle = document.getElementById("newsTitle");
+    const newsSubtitle = document.getElementById("newsSubtitle");
+    const backLink = document.getElementById("backLink");
 
-    newsList.forEach(news => {
-      const item = document.createElement("article");
-      item.className = "item";
-      item.innerHTML = `
-        <h3>${news.title}</h3>
-        <p><strong>发布时间：</strong>${news.date}</p>
-        <p>${news.content}</p>
-      `;
-      newsContainer.appendChild(item);
-    });
+    function renderSectionList() {
+      newsTitle.innerText = "宣传栏";
+      newsSubtitle.innerText = "平台动态、项目进展、合作招募";
+      backLink.href = "index.html";
+      backLink.innerText = "返回首页";
+
+      container.innerHTML = "";
+
+      newsSections.forEach(section => {
+        const card = document.createElement("a");
+        card.className = "item news-section-card";
+        card.href = `news.html?section=${section.id}`;
+        card.innerHTML = `
+          <h3>${section.title}</h3>
+          <p>${section.desc}</p>
+          <p class="read-more">点击查看详情 →</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderTimeline(section) {
+      newsTitle.innerText = section.title;
+      newsSubtitle.innerText = section.desc;
+      backLink.href = "news.html";
+      backLink.innerText = "返回宣传栏";
+
+      container.innerHTML = "";
+
+      let timeline = [...section.timeline];
+
+      if (section.order === "desc") {
+        timeline.reverse();
+      }
+
+      const timelineBox = document.createElement("section");
+      timelineBox.className = "timeline";
+
+      timeline.forEach(item => {
+        const timelineItem = document.createElement("article");
+        timelineItem.className = "timeline-item";
+        timelineItem.innerHTML = `
+          <div class="timeline-date">${item.date}</div>
+          <div class="timeline-content">
+            <h3>${item.title}</h3>
+            <p>${item.content}</p>
+          </div>
+        `;
+        timelineBox.appendChild(timelineItem);
+      });
+
+      container.appendChild(timelineBox);
+    }
+
+    if (sectionId) {
+      const section = newsSections.find(item => item.id === sectionId);
+
+      if (section) {
+        renderTimeline(section);
+      } else {
+        renderSectionList();
+      }
+    } else {
+      renderSectionList();
+    }
   </script>
 </body>
 </html>
