@@ -23,7 +23,16 @@
 
       <div class="map-viewport" id="mapViewport">
         <div class="map-canvas" id="mapCanvas">
-          <img src="images/map-boluo.jpg" alt="博罗非遗地图" class="map-image" />
+          <picture class="map-picture">
+            <source srcset="images/map-boluo.webp" type="image/webp" />
+            <img
+              src="images/map-boluo.jpg"
+              alt="博罗非遗地图"
+              class="map-image"
+              decoding="async"
+              fetchpriority="high"
+            />
+          </picture>
           <div class="map-markers" id="mapMarkers"></div>
         </div>
       </div>
