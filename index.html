@@ -82,17 +82,38 @@
     <section class="section">
       <h2>三大核心板块</h2>
       <div class="card-grid">
-        <a href="game.html" class="card">
+        <a
+          href="game.html"
+          class="card"
+          onclick="trackShiyiEvent('click_game_entry', {
+            entry_position: 'home_core_card',
+            entry_text: '非遗FYBI测评'
+          });"
+        >
           <h3>非遗FYBI测评</h3>
           <p>通过拾遗人格测评，从性格、兴趣与特长出发，生成非遗人格代码、类型报告和国家级非遗项目推荐。</p>
         </a>
 
-        <a href="map.html" class="card">
+        <a
+          href="map.html"
+          class="card"
+          onclick="trackShiyiEvent('click_map_entry', {
+            entry_position: 'home_core_card',
+            entry_text: '非遗地图'
+          });"
+        >
           <h3>非遗地图</h3>
           <p>以地图形式展示非遗项目分布，点击点位即可进入项目介绍页面。</p>
         </a>
 
-        <a href="news.html" class="card">
+        <a
+          href="news.html"
+          class="card"
+          onclick="trackShiyiEvent('click_news_entry', {
+            entry_position: 'home_core_card',
+            entry_text: '宣传栏'
+          });"
+        >
           <h3>宣传栏</h3>
           <p>发布非遗资讯、传承人故事、实践动态、活动预告和合作招募信息。</p>
         </a>

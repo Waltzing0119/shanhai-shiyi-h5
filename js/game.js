@@ -421,7 +421,16 @@ function updateSelectedMode(mode) {
 
 document.querySelectorAll(".mode-card").forEach(button => {
   button.onclick = () => {
-    updateSelectedMode(button.dataset.mode);
+    const mode = button.dataset.mode;
+    const config = shiyiModeConfig[mode];
+
+    trackShiyiEvent("click_fybi_mode", {
+      test_mode: mode,
+      mode_name: config ? config.name : mode,
+      entry_position: "fybi_mode_card"
+    });
+
+    updateSelectedMode(mode);
   };
 });
 
