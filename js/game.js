@@ -52,6 +52,11 @@ const dimensionMeta = {
 
 function startTest(mode) {
   currentMode = mode;
+
+  trackShiyiEvent("start_fybi_test", {
+    test_mode: mode
+  });
+
   const config = shiyiModeConfig[mode];
 
   currentQuestions = shiyiQuestionBank.filter(question => question.tier <= config.tier);
@@ -328,6 +333,12 @@ function showResult() {
   const resultCode = getResultCode(percentScores);
   const profile = shiyiProfiles[resultCode];
   const generatedTime = formatDateTime(new Date());
+
+  trackShiyiEvent("complete_fybi_test", {
+    test_mode: currentMode,
+    result_code: resultCode,
+    result_name: profile.name
+  });
 
   const recommendations = window.shiyiRecommender
     ? window.shiyiRecommender.getNationalHeritageRecommendations({

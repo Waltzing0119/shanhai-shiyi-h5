@@ -15,13 +15,24 @@
     gtag("config", "G-Z0Q468J260");
   </script>
 
+  <script src="js/analytics.js"></script>
+
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <header class="hero">
     <nav class="nav">
       <div class="logo">山海拾遗</div>
-      <a href="join.html" class="nav-link">加入平台</a>
+      <a
+        href="join.html"
+        class="nav-link"
+        onclick="trackShiyiEvent('click_join_platform', {
+          entry_position: 'home_nav',
+          entry_text: '加入平台'
+        });"
+      >
+        加入平台
+      </a>
     </nav>
 
     <section class="hero-content">
@@ -32,8 +43,26 @@
       </h1>
       <p class="subtitle">让非遗被看见、被体验、被传承</p>
       <div class="hero-buttons">
-        <a href="map.html" class="btn primary">进入非遗地图</a>
-        <a href="game.html" class="btn secondary">非遗FYBI测评</a>
+        <a
+          href="map.html"
+          class="btn primary"
+          onclick="trackShiyiEvent('click_map_entry', {
+            entry_position: 'home_hero',
+            entry_text: '进入非遗地图'
+          });"
+        >
+          进入非遗地图
+        </a>
+        <a
+          href="game.html"
+          class="btn secondary"
+          onclick="trackShiyiEvent('click_game_entry', {
+            entry_position: 'home_hero',
+            entry_text: '非遗FYBI测评'
+          });"
+        >
+          非遗FYBI测评
+        </a>
       </div>
     </section>
   </header>
@@ -76,7 +105,16 @@
         平台第一期将以惠州市博罗县非遗文化资源为试点，
         后续面向更多非遗传承人、地方组织和高校实践团队开放合作入驻。
       </p>
-      <a href="join.html" class="btn primary">申请入驻 / 联系我们</a>
+      <a
+          href="join.html"
+          class="btn primary"
+          onclick="trackShiyiEvent('click_join_platform', {
+            entry_position: 'home_bottom',
+            entry_text: '申请入驻 / 联系我们'
+          });"
+        >
+          申请入驻 / 联系我们
+        </a>
     </section>
   </main>
 
