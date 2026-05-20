@@ -52,12 +52,6 @@
         </button>
       </div>
 
-      <div class="selected-mode-panel">
-        <p id="selectedModeText">已选择：标准版｜50题｜约8分钟｜生成完整报告</p>
-        <button class="btn primary red start-test-btn" id="startSelectedMode" type="button">
-          开始测评
-        </button>
-      </div>
     </section>
 
     <section class="question-card shiyi-question-card hidden" id="questionScreen">
@@ -72,7 +66,13 @@
       </div>
 
       <p class="scale-tip">请根据你的真实感受选择符合程度。</p>
-      <h2 id="questionTitle">题目加载中...</h2>
+
+      <<label class="auto-next-toggle">
+      <  <input type="checkbox" id="autoNextToggle" checked />
+      <  <span>作答后自动跳转下一题</span>
+      <</label>
+
+      <<h2 id="questionTitle">题目加载中...</h2>
 
       <div class="scale-options" id="options"></div>
 

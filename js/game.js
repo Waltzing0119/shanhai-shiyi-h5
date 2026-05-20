@@ -10,11 +10,13 @@ const optionsBox = document.getElementById("options");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const resultContent = document.getElementById("resultContent");
+const autoNextToggle = document.getElementById("autoNextToggle");
 
 let currentMode = "standard";
 let currentQuestions = [];
 let currentIndex = 0;
 let answers = [];
+let autoNextTimer = null;
 
 const testDimensionPairs = [
   ["E", "I"],
@@ -49,6 +51,27 @@ const dimensionMeta = {
     rightName: "表演型"
   }
 };
+
+function clearAutoNextTimer() {
+  if (autoNextTimer) {
+    clearTimeout(autoNextTimer);
+    autoNextTimer = null;
+  }
+}
+
+function selectAnswer(value) {
+  clearAutoNextTimer();
+
+  answers[currentIndex] = value;
+  renderQuestion();
+
+  if (autoNextToggle && autoNextToggle.checked) {
+    autoNextTimer = setTimeout(() => {
+      autoNextTimer = null;
+      goToNextQuestion();
+    }, 220);
+  }
+}
 
 function startTest(mode) {
   currentMode = mode;
@@ -93,8 +116,7 @@ function renderQuestion() {
     }
 
     button.onclick = () => {
-      answers[currentIndex] = option.value;
-      renderQuestion();
+      selectAnswer(option.value);
     };
 
     optionsBox.appendChild(button);
@@ -111,6 +133,8 @@ function renderQuestion() {
 }
 
 function goToNextQuestion() {
+  clearAutoNextTimer();
+
   if (answers[currentIndex] === null) {
     alert("请先选择一个符合程度。");
     return;
@@ -126,6 +150,8 @@ function goToNextQuestion() {
 }
 
 function goToPreviousQuestion() {
+  clearAutoNextTimer();
+
   if (currentIndex === 0) return;
 
   currentIndex--;
@@ -297,7 +323,7 @@ function renderRecommendationCards(recommendations) {
   return `
     <section class="result-section">
       <button class="recommend-toggle" type="button" id="recommendToggle">
-        推荐非遗项目（三项）<span>点击展开 / 收起</span>
+        推荐非遗项目<span>点击展开 / 收起</span>
       </button>
 
       <div class="recommend-list hidden" id="recommendList">
@@ -396,51 +422,11 @@ function showResult() {
   });
 }
 
-let selectedMode = "standard";
-
-const selectedModeText = document.getElementById("selectedModeText");
-const startSelectedModeBtn = document.getElementById("startSelectedMode");
-
-function updateSelectedMode(mode) {
-  selectedMode = mode;
-
-  document.querySelectorAll(".mode-card").forEach(button => {
-    if (button.dataset.mode === mode) {
-      button.classList.add("selected");
-    } else {
-      button.classList.remove("selected");
-    }
-  });
-
-  const config = shiyiModeConfig[mode];
-
-  if (selectedModeText && config) {
-    selectedModeText.innerText = `已选择：${config.name}｜${config.desc}`;
-  }
-}
-
 document.querySelectorAll(".mode-card").forEach(button => {
   button.onclick = () => {
-    const mode = button.dataset.mode;
-    const config = shiyiModeConfig[mode];
-
-    trackShiyiEvent("click_fybi_mode", {
-      test_mode: mode,
-      mode_name: config ? config.name : mode,
-      entry_position: "fybi_mode_card"
-    });
-
-    updateSelectedMode(mode);
+    startTest(button.dataset.mode);
   };
 });
-
-if (startSelectedModeBtn) {
-  startSelectedModeBtn.onclick = () => {
-    startTest(selectedMode);
-  };
-}
-
-updateSelectedMode(selectedMode);
 
 nextBtn.onclick = goToNextQuestion;
 prevBtn.onclick = goToPreviousQuestion;

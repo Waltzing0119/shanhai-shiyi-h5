@@ -1058,3 +1058,24 @@ footer {
   font-weight: bold;
   text-decoration: underline;
 }
+
+.auto-next-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  background: #fff6e9;
+  border: 1px solid #f0dfc6;
+  border-radius: 999px;
+  color: #7a4a35;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.auto-next-toggle input {
+  width: 15px;
+  height: 15px;
+  accent-color: #8b2e1f;
+}
