@@ -1643,3 +1643,92 @@ body.wechat-certificate-open {
   line-height: 1;
   cursor: pointer;
 }
+
+/* FYBI detailed report export */
+.fybi-detail-exporting .result-actions,
+.fybi-detail-exporting .recommend-refresh-btn {
+  display: none !important;
+}
+
+.fybi-detail-exporting .recommend-toggle span {
+  display: none !important;
+}
+
+.fybi-detail-exporting .recommend-toggle {
+  cursor: default;
+}
+
+/* FYBI image preview for WeChat */
+body.fybi-image-preview-open {
+  overflow: hidden;
+}
+
+.fybi-image-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.fybi-image-preview-modal.show {
+  display: flex;
+}
+
+.fybi-image-preview-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.fybi-image-preview-card {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 430px);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fffaf2;
+  border-radius: 20px;
+  padding: 20px 18px 18px;
+  text-align: center;
+  color: #4a2a16;
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.28);
+}
+
+.fybi-image-preview-title {
+  margin: 0 0 8px;
+  color: #8b2e1f;
+  font-size: 20px;
+}
+
+.fybi-image-preview-note {
+  margin: 0 0 14px;
+  color: #7a4b25;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.fybi-image-preview-img {
+  width: 100%;
+  display: block;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(74, 42, 22, 0.12);
+}
+
+.fybi-image-preview-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #9b6a3d;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}

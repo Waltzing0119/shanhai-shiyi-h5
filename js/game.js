@@ -20,6 +20,74 @@ let autoNextTimer = null;
 let currentRecommendationPool = [];
 let currentRecommendationBatchIndex = 0;
 const recommendationBatchSize = 3;
+const NATIONAL_HERITAGE_SCRIPT_SRC = "js/national-heritage-projects.js";
+const HTML2CANVAS_SCRIPT_SRC = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+
+let nationalHeritageLoadPromise = null;
+let html2canvasLoadPromise = null;
+
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const existingScript = document.querySelector(`script[data-dynamic-src="${src}"]`);
+
+    if (existingScript) {
+      if (existingScript.dataset.loaded === "true") {
+        resolve();
+        return;
+      }
+
+      existingScript.addEventListener("load", resolve, { once: true });
+      existingScript.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.dataset.dynamicSrc = src;
+    script.onload = () => {
+      script.dataset.loaded = "true";
+      resolve();
+    };
+    script.onerror = () => {
+      reject(new Error(`脚本加载失败：${src}`));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+function isNationalHeritageDataReady() {
+  return (
+    typeof nationalHeritageProjects !== "undefined" &&
+    Array.isArray(nationalHeritageProjects) &&
+    typeof nationalHeritageRecommendConfig !== "undefined"
+  );
+}
+
+function loadNationalHeritageDataIfNeeded() {
+  if (isNationalHeritageDataReady()) {
+    return Promise.resolve();
+  }
+
+  if (!nationalHeritageLoadPromise) {
+    nationalHeritageLoadPromise = loadScriptOnce(NATIONAL_HERITAGE_SCRIPT_SRC);
+  }
+
+  return nationalHeritageLoadPromise;
+}
+
+function loadHtml2CanvasIfNeeded() {
+  if (typeof html2canvas === "function") {
+    return Promise.resolve();
+  }
+
+  if (!html2canvasLoadPromise) {
+    html2canvasLoadPromise = loadScriptOnce(HTML2CANVAS_SCRIPT_SRC);
+  }
+
+  return html2canvasLoadPromise;
+}
+
 
 const LOTTERY_POPUP_KEY = "fybi_lottery_popup_20260521_dont_show";
 const LOTTERY_GROUP_QR_CODE_SRC = "images/fybi-lottery-group-qrcode.jpg";
@@ -233,15 +301,166 @@ function tryShowLotteryPopupAfterReportGenerated() {
   }
 }
 
+function isWeChatBrowser() {
+  return /MicroMessenger/i.test(navigator.userAgent || "");
+}
+
+function showFybiImagePreview(imageUrl, title, note) {
+  let modal = document.getElementById("fybiImagePreviewModal");
+
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "fybiImagePreviewModal";
+    modal.className = "fybi-image-preview-modal";
+    modal.innerHTML = `
+      <div class="fybi-image-preview-mask" data-fybi-image-preview-close></div>
+      <div class="fybi-image-preview-card" role="dialog" aria-modal="true">
+        <button class="fybi-image-preview-close" type="button" data-fybi-image-preview-close aria-label="关闭">&times;</button>
+        <h3 class="fybi-image-preview-title"></h3>
+        <p class="fybi-image-preview-note"></p>
+        <img class="fybi-image-preview-img" alt="FYBI报告预览图">
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelectorAll("[data-fybi-image-preview-close]").forEach(element => {
+      element.addEventListener("click", () => {
+        modal.classList.remove("show");
+        document.body.classList.remove("fybi-image-preview-open");
+      });
+    });
+  }
+
+  const titleBox = modal.querySelector(".fybi-image-preview-title");
+  const noteBox = modal.querySelector(".fybi-image-preview-note");
+  const image = modal.querySelector(".fybi-image-preview-img");
+
+  if (titleBox) {
+    titleBox.textContent = title || "长按保存图片";
+  }
+
+  if (noteBox) {
+    noteBox.textContent = note || "微信内可能无法直接下载，请长按下方图片保存到相册。";
+  }
+
+  if (image) {
+    image.src = imageUrl;
+  }
+
+  modal.classList.add("show");
+  document.body.classList.add("fybi-image-preview-open");
+}
+
+function saveFybiImageUrl(imageUrl, filename, previewTitle, previewNote) {
+  if (isWeChatBrowser()) {
+    showFybiImagePreview(imageUrl, previewTitle, previewNote);
+    return "preview";
+  }
+
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = imageUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  return "download";
+}
+
+async function exportFybiDetailedReportAsImage(report) {
+  if (!report) {
+    alert("报告数据暂未生成，请完成测评后再保存详细报告。");
+    return;
+  }
+
+  try {
+    await loadHtml2CanvasIfNeeded();
+  } catch (error) {
+    console.error(error);
+    alert("详细报告保存组件加载失败，请检查网络后重试。");
+    return;
+  }
+
+  const target = document.getElementById("resultContent");
+
+  if (!target) {
+    alert("暂未找到报告内容，请刷新后重试。");
+    return;
+  }
+
+  const detailButton = document.getElementById("exportDetailReportBtn");
+  const recommendList = document.getElementById("recommendList");
+  const wasRecommendHidden = recommendList && recommendList.classList.contains("hidden");
+
+  try {
+    if (detailButton) {
+      detailButton.disabled = true;
+      detailButton.textContent = "正在生成...";
+    }
+
+    if (recommendList) {
+      recommendList.classList.remove("hidden");
+    }
+
+    document.body.classList.add("fybi-detail-exporting");
+
+    await new Promise(resolve => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(resolve);
+      });
+    });
+
+    const canvas = await html2canvas(target, {
+      backgroundColor: "#f8f4ed",
+      scale: Math.min(window.devicePixelRatio || 1.5, 1.5),
+      useCORS: true,
+      allowTaint: false,
+      logging: false,
+      imageTimeout: 15000,
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      windowWidth: document.documentElement.scrollWidth
+    });
+
+    const imageUrl = canvas.toDataURL("image/png");
+    const filename = `山海拾遗-FYBI详细报告-${report.certificateNo}.png`;
+
+    const saveMode = saveFybiImageUrl(
+      imageUrl,
+      filename,
+      "长按保存详细报告",
+      "微信内可能无法直接下载，请长按下方详细报告图片保存到相册。"
+    );
+
+    trackShiyiEvent("export_fybi_detailed_report", {
+      certificate_no: report.certificateNo,
+      result_code: report.resultCode,
+      result_name: report.profile.name,
+      save_mode: saveMode
+    });
+  } catch (error) {
+    console.error(error);
+    alert("详细报告生成失败，请稍后重试。");
+  } finally {
+    if (wasRecommendHidden && recommendList) {
+      recommendList.classList.add("hidden");
+    }
+
+    document.body.classList.remove("fybi-detail-exporting");
+
+    if (detailButton) {
+      detailButton.disabled = false;
+      detailButton.textContent = "保存详细报告";
+    }
+  }
+}
+
 const FYBI_URL_PARAM_CODE = "fybi";
 const FYBI_URL_PARAM_SCORES = "scores";
 const FYBI_URL_PARAM_CERT = "cert";
 const FYBI_URL_PARAM_TIME = "time";
 const FYBI_URL_PARAM_MODE = "mode";
-
-function isWeChatBrowser() {
-  return /MicroMessenger/i.test(navigator.userAgent || "");
-}
 
 function showWechatCertificatePreview(imageUrl) {
   let modal = document.getElementById("wechatCertificatePreview");
@@ -312,7 +531,7 @@ function buildFybiRecommendationPool(resultCode, scores) {
   currentRecommendationPool = [];
   currentRecommendationBatchIndex = 0;
 
-  if (!window.shiyiRecommender) {
+  if (!window.shiyiRecommender || !isNationalHeritageDataReady()) {
     return;
   }
 
@@ -403,7 +622,22 @@ function createFybiReportDataFromUrl() {
   };
 }
 
-function restoreFybiReportFromUrl() {
+async function restoreFybiReportFromUrl() {
+  const url = new URL(window.location.href);
+  const hasFybiResultInUrl =
+    url.searchParams.get(FYBI_URL_PARAM_CODE) &&
+    url.searchParams.get(FYBI_URL_PARAM_SCORES);
+
+  if (!hasFybiResultInUrl) {
+    return;
+  }
+
+  try {
+    await loadNationalHeritageDataIfNeeded();
+  } catch (error) {
+    console.warn("恢复报告时推荐库加载失败，将先恢复基础报告：", error);
+  }
+
   const reportData = createFybiReportDataFromUrl();
 
   if (!reportData) {
@@ -441,6 +675,10 @@ function selectAnswer(value) {
 function startTest(mode) {
   currentMode = mode;
   clearFybiResultUrl();
+
+  loadNationalHeritageDataIfNeeded().catch(error => {
+    console.warn("非遗推荐库后台加载失败：", error);
+  });
   
   trackShiyiEvent("start_fybi_test", {
     test_mode: mode
@@ -1498,6 +1736,7 @@ function renderFybiResultReport(reportData, options = {}) {
     })}
 
     <div class="result-actions">
+      <button class="btn primary red" type="button" id="exportDetailReportBtn">保存详细报告</button>
       <button class="btn primary red" type="button" id="exportReportBtn">导出证书</button>
       <button class="btn primary red" type="button" id="restartBtn">重新测评</button>
       <a class="btn secondary dark" href="index.html">返回首页</a>
@@ -1534,6 +1773,11 @@ function renderFybiResultReport(reportData, options = {}) {
     };
   }
 
+
+  document.getElementById("exportDetailReportBtn").onclick = () => {
+    exportFybiDetailedReportAsImage(window.currentFybiReport);
+  };
+
   document.getElementById("exportReportBtn").onclick = () => {
     exportFybiReportAsImage(window.currentFybiReport);
   };
@@ -1562,13 +1806,22 @@ function renderFybiResultReport(reportData, options = {}) {
   }
 }
 
-function showResult() {
+async function showResult() {
   const rawScores = calculateRawScores();
   const percentScores = calculatePercentScores(rawScores);
   const resultCode = getResultCode(percentScores);
   const profile = shiyiProfiles[resultCode];
   const generatedTime = formatDateTime(new Date());
   const certificateNo = createFybiCertificateNo(currentMode);
+
+  nextBtn.disabled = true;
+  nextBtn.innerText = "生成报告中...";
+
+  try {
+    await loadNationalHeritageDataIfNeeded();
+  } catch (error) {
+    console.warn("非遗推荐库加载失败，将先生成基础报告：", error);
+  }
 
   trackShiyiEvent("complete_fybi_test", {
     test_mode: currentMode,
