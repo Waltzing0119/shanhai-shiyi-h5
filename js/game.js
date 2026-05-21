@@ -21,6 +21,9 @@ let currentRecommendationPool = [];
 let currentRecommendationBatchIndex = 0;
 const recommendationBatchSize = 3;
 
+const LOTTERY_POPUP_KEY = "fybi_lottery_popup_20260521_dont_show";
+const LOTTERY_GROUP_QR_CODE_SRC = "images/fybi-lottery-group-qrcode.jpg";
+
 const testDimensionPairs = [
   ["E", "I"],
   ["H", "C"],
@@ -59,6 +62,174 @@ function clearAutoNextTimer() {
   if (autoNextTimer) {
     clearTimeout(autoNextTimer);
     autoNextTimer = null;
+  }
+}
+
+function getLotteryPopup() {
+  let modal = document.getElementById("fybiLotteryModal");
+
+  if (modal) {
+    return modal;
+  }
+
+  modal = document.createElement("div");
+  modal.id = "fybiLotteryModal";
+  modal.className = "fybi-lottery-modal hidden";
+  modal.innerHTML = `
+    <div class="fybi-lottery-mask" data-lottery-close></div>
+    <div class="fybi-lottery-card" role="dialog" aria-modal="true" aria-labelledby="fybiLotteryTitle">
+      <button class="fybi-lottery-close" type="button" data-lottery-close aria-label="\u5173\u95ed">&times;</button>
+
+      <p class="fybi-lottery-kicker">\u5c71\u6d77\u62fe\u9057 \u00b7 \u975e\u9057FYBI\u516c\u6d4b</p>
+      <h2 id="fybiLotteryTitle">\u516c\u6d4b\u798f\u5229\u6765\u5566\uff01</h2>
+
+      <p class="fybi-lottery-main-text">
+        \u606d\u559c\u4f60\u5b8c\u6210\u975e\u9057 FYBI \u6d4b\u8bc4\uff01<br>
+        \u73b0\u5728\u626b\u7801\u8fdb\u5165\u516c\u6d4b\u62bd\u5956\u7fa4\uff0c\u5373\u53ef\u53c2\u4e0e\u7b2c\u4e00\u8f6e\u5976\u8336\u62bd\u5956\u3002
+      </p>
+
+      <p class="fybi-lottery-note">
+        \u62bd\u4e2d\u540e\u51ed\u4f60\u7684 FYBI \u62a5\u544a/\u8bc1\u4e66\u622a\u56fe\u6838\u9a8c\u8d44\u683c\u3002<br>
+        \u8f6c\u53d1\u5e73\u53f0\u5ba3\u4f20\u5185\u5bb9\uff0c\u8fd8\u53ef\u53c2\u4e0e\u7b2c\u4e8c\u8f6e\u62bd\u5956\u3002<br>
+        \u4eca\u665a 23:30 \u5f00\u5956\uff01
+      </p>
+
+      <div class="fybi-lottery-qrcode-wrap">
+        <img
+          src="${LOTTERY_GROUP_QR_CODE_SRC}"
+          alt="\u516c\u6d4b\u62bd\u5956\u7fa4\u4e8c\u7ef4\u7801"
+          class="fybi-lottery-qrcode"
+        >
+        <div class="fybi-lottery-qr-placeholder">
+          <span>\u8bf7\u5c06\u7fa4\u4e8c\u7ef4\u7801\u653e\u5230</span>
+          <strong>images/fybi-lottery-group-qrcode.jpg</strong>
+        </div>
+      </div>
+
+      <div class="fybi-lottery-tip">\u957f\u6309\u8bc6\u522b\u4e8c\u7ef4\u7801\u8fdb\u7fa4\u62bd\u5956</div>
+
+      <label class="fybi-lottery-checkbox">
+        <input type="checkbox" id="fybiLotteryDontShowAgain">
+        <span>本次活动不再弹出提醒</span>
+      </label>
+
+      <div class="fybi-lottery-actions">
+        <button class="fybi-lottery-primary" type="button" data-lottery-join>\u7acb\u5373\u8fdb\u7fa4\u62bd\u5956</button>
+        <button class="fybi-lottery-secondary" type="button" data-lottery-export>\u4fdd\u5b58\u62a5\u544a/\u8bc1\u4e66</button>
+        <button class="fybi-lottery-ghost" type="button" data-lottery-close>\u7a0d\u540e\u518d\u8bf4</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const qrCodeImage = modal.querySelector(".fybi-lottery-qrcode");
+  if (qrCodeImage) {
+    qrCodeImage.onerror = () => {
+      qrCodeImage.classList.add("missing");
+    };
+  }
+
+  modal.querySelectorAll("[data-lottery-close]").forEach(element => {
+    element.addEventListener("click", closeLotteryPopup);
+  });
+
+  const joinButton = modal.querySelector("[data-lottery-join]");
+  if (joinButton) {
+    joinButton.addEventListener("click", clickJoinLotteryGroup);
+  }
+
+  const exportButton = modal.querySelector("[data-lottery-export]");
+  if (exportButton) {
+    exportButton.addEventListener("click", exportFybiReportFromLotteryPopup);
+  }
+
+  return modal;
+}
+
+function showLotteryPopup() {
+  const modal = getLotteryPopup();
+  modal.classList.remove("hidden");
+  document.body.classList.add("fybi-lottery-open");
+
+  trackShiyiEvent("fybi_lottery_popup_show", {
+    event_category: "fybi",
+    event_label: "report_page"
+  });
+}
+
+function closeLotteryPopup() {
+  const modal = document.getElementById("fybiLotteryModal");
+
+  if (modal) {
+    const dontShowCheckbox = modal.querySelector("#fybiLotteryDontShowAgain");
+
+    try {
+      if (dontShowCheckbox && dontShowCheckbox.checked) {
+        localStorage.setItem(LOTTERY_POPUP_KEY, "true");
+      } else {
+        localStorage.removeItem(LOTTERY_POPUP_KEY);
+      }
+    } catch (error) {
+      console.warn(error);
+    }
+
+    modal.classList.add("hidden");
+  }
+
+  document.body.classList.remove("fybi-lottery-open");
+
+  trackShiyiEvent("fybi_lottery_popup_close", {
+    event_category: "fybi",
+    event_label: "report_page"
+  });
+}
+
+function clickJoinLotteryGroup() {
+  trackShiyiEvent("fybi_lottery_group_click", {
+    event_category: "fybi",
+    event_label: "report_popup"
+  });
+
+  const modal = getLotteryPopup();
+  const qrWrap = modal.querySelector(".fybi-lottery-qrcode-wrap");
+  const card = modal.querySelector(".fybi-lottery-card");
+
+  if (qrWrap) {
+    qrWrap.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+
+  if (card) {
+    card.classList.add("fybi-lottery-card-highlight");
+    setTimeout(() => {
+      card.classList.remove("fybi-lottery-card-highlight");
+    }, 900);
+  }
+}
+
+function exportFybiReportFromLotteryPopup() {
+  trackShiyiEvent("fybi_lottery_export_click", {
+    event_category: "fybi",
+    event_label: "report_popup"
+  });
+
+  exportFybiReportAsImage(window.currentFybiReport);
+}
+
+function tryShowLotteryPopupAfterReportGenerated() {
+  try {
+    const dontShow = localStorage.getItem(LOTTERY_POPUP_KEY);
+
+    if (dontShow === "true") {
+      return;
+    }
+
+    showLotteryPopup();
+  } catch (error) {
+    showLotteryPopup();
   }
 }
 
@@ -1189,6 +1360,10 @@ if (refreshRecommendBtn) {
     top: 0,
     behavior: "smooth"
   });
+
+  setTimeout(() => {
+    tryShowLotteryPopupAfterReportGenerated();
+  }, 350);
 }
 
 document.querySelectorAll(".mode-card").forEach(button => {
