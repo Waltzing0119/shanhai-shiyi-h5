@@ -1568,3 +1568,78 @@ body.fybi-lottery-open {
     font-size: 14px;
   }
 }
+
+/* WeChat certificate preview */
+body.wechat-certificate-open {
+  overflow: hidden;
+}
+
+.wechat-certificate-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.wechat-certificate-preview.show {
+  display: flex;
+}
+
+.wechat-certificate-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.wechat-certificate-card {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 420px);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fffaf2;
+  border-radius: 20px;
+  padding: 20px 18px 18px;
+  text-align: center;
+  color: #4a2a16;
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.28);
+}
+
+.wechat-certificate-card h3 {
+  margin: 0 0 8px;
+  color: #8b2e1f;
+  font-size: 20px;
+}
+
+.wechat-certificate-card p {
+  margin: 0 0 14px;
+  color: #7a4b25;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.wechat-certificate-image {
+  width: 100%;
+  display: block;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(74, 42, 22, 0.12);
+}
+
+.wechat-certificate-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #9b6a3d;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}

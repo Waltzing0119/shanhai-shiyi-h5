@@ -233,6 +233,197 @@ function tryShowLotteryPopupAfterReportGenerated() {
   }
 }
 
+const FYBI_URL_PARAM_CODE = "fybi";
+const FYBI_URL_PARAM_SCORES = "scores";
+const FYBI_URL_PARAM_CERT = "cert";
+const FYBI_URL_PARAM_TIME = "time";
+const FYBI_URL_PARAM_MODE = "mode";
+
+function isWeChatBrowser() {
+  return /MicroMessenger/i.test(navigator.userAgent || "");
+}
+
+function showWechatCertificatePreview(imageUrl) {
+  let modal = document.getElementById("wechatCertificatePreview");
+
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "wechatCertificatePreview";
+    modal.className = "wechat-certificate-preview";
+    modal.innerHTML = `
+      <div class="wechat-certificate-mask" data-wechat-cert-close></div>
+      <div class="wechat-certificate-card" role="dialog" aria-modal="true" aria-labelledby="wechatCertificateTitle">
+        <button class="wechat-certificate-close" type="button" data-wechat-cert-close aria-label="关闭">&times;</button>
+        <h3 id="wechatCertificateTitle">长按保存证书</h3>
+        <p>微信内可能无法直接下载，请长按下方图片保存到相册。不要先跳转浏览器，避免测试记录丢失。</p>
+        <img class="wechat-certificate-image" alt="FYBI测评报告证书预览">
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelectorAll("[data-wechat-cert-close]").forEach(element => {
+      element.addEventListener("click", () => {
+        modal.classList.remove("show");
+        document.body.classList.remove("wechat-certificate-open");
+      });
+    });
+  }
+
+  const image = modal.querySelector(".wechat-certificate-image");
+  if (image) {
+    image.src = imageUrl;
+  }
+
+  modal.classList.add("show");
+  document.body.classList.add("wechat-certificate-open");
+}
+
+function serializeFybiScores(scores) {
+  return ["E", "I", "H", "C", "L", "T", "M", "P"]
+    .map(key => `${key}${Number(scores[key]) || 0}`)
+    .join("-");
+}
+
+function parseFybiScoresParam(value) {
+  if (!value) {
+    return null;
+  }
+
+  const scores = {};
+  value.split("-").forEach(item => {
+    const match = item.match(/^([EIHCLTMP])(\d{1,3})$/);
+    if (!match) {
+      return;
+    }
+
+    const key = match[1];
+    const score = Math.max(0, Math.min(100, Number(match[2])));
+    scores[key] = score;
+  });
+
+  const requiredKeys = ["E", "I", "H", "C", "L", "T", "M", "P"];
+  const isComplete = requiredKeys.every(key => typeof scores[key] === "number");
+
+  return isComplete ? scores : null;
+}
+
+function buildFybiRecommendationPool(resultCode, scores) {
+  currentRecommendationPool = [];
+  currentRecommendationBatchIndex = 0;
+
+  if (!window.shiyiRecommender) {
+    return;
+  }
+
+  if (window.shiyiRecommender.getNationalHeritageRecommendationPool) {
+    currentRecommendationPool = window.shiyiRecommender.getNationalHeritageRecommendationPool(
+      {
+        code: resultCode,
+        scores
+      },
+      {
+        poolSize: 30
+      }
+    );
+  } else {
+    currentRecommendationPool = window.shiyiRecommender.getNationalHeritageRecommendations({
+      code: resultCode,
+      scores
+    });
+  }
+}
+
+function updateFybiResultUrl(report) {
+  if (!report || !report.resultCode || !report.scores) {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set(FYBI_URL_PARAM_CODE, report.resultCode);
+  url.searchParams.set(FYBI_URL_PARAM_SCORES, serializeFybiScores(report.scores));
+  url.searchParams.set(FYBI_URL_PARAM_CERT, report.certificateNo || "");
+  url.searchParams.set(FYBI_URL_PARAM_TIME, report.generatedTime || "");
+  url.searchParams.set(FYBI_URL_PARAM_MODE, report.testMode || currentMode || "standard");
+
+  window.history.replaceState({}, "", url.toString());
+}
+
+function clearFybiResultUrl() {
+  const url = new URL(window.location.href);
+  let changed = false;
+
+  [
+    FYBI_URL_PARAM_CODE,
+    FYBI_URL_PARAM_SCORES,
+    FYBI_URL_PARAM_CERT,
+    FYBI_URL_PARAM_TIME,
+    FYBI_URL_PARAM_MODE
+  ].forEach(param => {
+    if (url.searchParams.has(param)) {
+      url.searchParams.delete(param);
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    window.history.replaceState({}, "", url.toString());
+  }
+}
+
+function createFybiReportDataFromUrl() {
+  const url = new URL(window.location.href);
+  const resultCode = url.searchParams.get(FYBI_URL_PARAM_CODE);
+
+  if (!resultCode || !shiyiProfiles[resultCode]) {
+    return null;
+  }
+
+  const scores = parseFybiScoresParam(url.searchParams.get(FYBI_URL_PARAM_SCORES));
+
+  if (!scores) {
+    return null;
+  }
+
+  const testMode = url.searchParams.get(FYBI_URL_PARAM_MODE) || "standard";
+  const generatedTime = url.searchParams.get(FYBI_URL_PARAM_TIME) || formatDateTime(new Date());
+  const certificateNo = url.searchParams.get(FYBI_URL_PARAM_CERT) || createFybiCertificateNo(testMode);
+  const profile = shiyiProfiles[resultCode];
+
+  buildFybiRecommendationPool(resultCode, scores);
+
+  return {
+    resultCode,
+    profile,
+    scores,
+    generatedTime,
+    certificateNo,
+    recommendations: getCurrentRecommendationBatch(),
+    testMode
+  };
+}
+
+function restoreFybiReportFromUrl() {
+  const reportData = createFybiReportDataFromUrl();
+
+  if (!reportData) {
+    return;
+  }
+
+  renderFybiResultReport(reportData, {
+    updateUrl: false,
+    showLottery: false,
+    scroll: false
+  });
+
+  trackShiyiEvent("restore_fybi_report_from_url", {
+    test_mode: reportData.testMode,
+    result_code: reportData.resultCode,
+    result_name: reportData.profile.name,
+    certificate_no: reportData.certificateNo
+  });
+}
+
 function selectAnswer(value) {
   clearAutoNextTimer();
 
@@ -249,7 +440,8 @@ function selectAnswer(value) {
 
 function startTest(mode) {
   currentMode = mode;
-
+  clearFybiResultUrl();
+  
   trackShiyiEvent("start_fybi_test", {
     test_mode: mode
   });
@@ -826,13 +1018,27 @@ async function exportFybiReportAsImage(report) {
   ctx.fillText("广东海洋大学“山海拾遗”百千万工程实践团", width / 2, panelBottom - 35);
 
   try {
+    const imageUrl = canvas.toDataURL("image/png");
+
+    if (isWeChatBrowser()) {
+      showWechatCertificatePreview(imageUrl);
+
+      trackShiyiEvent("preview_fybi_report_wechat", {
+        certificate_no: report.certificateNo,
+        result_code: report.resultCode,
+        result_name: report.profile.name
+      });
+  
+      return;
+    }
+
     const link = document.createElement("a");
     link.download = `山海拾遗-FYBI测评报告证书-${report.certificateNo}.png`;
-    link.href = canvas.toDataURL("image/png");
+    link.href = imageUrl;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
+  
     trackShiyiEvent("export_fybi_report", {
       certificate_no: report.certificateNo,
       result_code: report.resultCode,
@@ -870,20 +1076,38 @@ function getFybiAvatarSrc(resultCode) {
   return fybiAvatarMap[resultCode] || fybiAvatarMap.EHLP;
 }
 
+function getFybiAvatarDisplaySrc(resultCode) {
+  const code = resultCode || "EHLP";
+  return `images/fybi-avatars/display/FYBI_${code}_display.webp`;
+}
+
 function getProfileImageHtml(profile, resultCode) {
-  const avatarSrc = getFybiAvatarSrc(resultCode || profile.code);
+  const code = resultCode || profile.code;
+  const displayAvatarSrc = getFybiAvatarDisplaySrc(code);
+  const originalAvatarSrc = getFybiAvatarSrc(code);
 
   return `
     <div class="profile-image-wrap">
       <img
         class="profile-image"
-        src="${avatarSrc}"
+        src="${displayAvatarSrc}"
         alt="${profile.name}"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+        onerror="
+          if (this.dataset.fallback !== 'original') {
+            this.dataset.fallback = 'original';
+            this.src = '${originalAvatarSrc}';
+          } else {
+            this.style.display = 'none';
+            this.nextElementSibling.style.display = 'flex';
+          }
+        "
       />
       <div class="profile-image-fallback">
-        <span>${resultCode || profile.code}</span>
-        <p>人格形象待生成</p>
+        <span>${code}</span>
+        <p>人格形象加载失败</p>
       </div>
     </div>
   `;
@@ -1230,65 +1454,28 @@ function renderAnalysisReport({ profile, scores, resultCode, recommendations }) 
   `;
 }
 
-function showResult() {
-  const rawScores = calculateRawScores();
-  const percentScores = calculatePercentScores(rawScores);
-  const resultCode = getResultCode(percentScores);
-  const profile = shiyiProfiles[resultCode];
-  const generatedTime = formatDateTime(new Date());
-  const certificateNo = createFybiCertificateNo(currentMode);
+function renderFybiResultReport(reportData, options = {}) {
+  const shouldUpdateUrl = options.updateUrl !== false;
+  const shouldShowLottery = options.showLottery !== false;
+  const shouldScroll = options.scroll !== false;
 
-  trackShiyiEvent("complete_fybi_test", {
-    test_mode: currentMode,
-    result_code: resultCode,
-    result_name: profile.name,
-    certificate_no: certificateNo
-  });
+  const resultCode = reportData.resultCode;
+  const profile = reportData.profile;
+  const percentScores = reportData.scores;
+  const recommendations = reportData.recommendations || [];
 
-  currentRecommendationPool = [];
-  currentRecommendationBatchIndex = 0;
-  
-  if (window.shiyiRecommender) {
-    if (window.shiyiRecommender.getNationalHeritageRecommendationPool) {
-      currentRecommendationPool = window.shiyiRecommender.getNationalHeritageRecommendationPool(
-        {
-          code: resultCode,
-          scores: percentScores
-        },
-        {
-          poolSize: 30
-        }
-      );
-    } else {
-      currentRecommendationPool = window.shiyiRecommender.getNationalHeritageRecommendations({
-        code: resultCode,
-        scores: percentScores
-      });
-    }
-  }
-
-  const recommendations = getCurrentRecommendationBatch();
-
-  const reportData = {
-    resultCode,
-    profile,
-    scores: percentScores,
-    generatedTime,
-    certificateNo,
-    recommendations,
-    testMode: currentMode
-  };
-
+  currentMode = reportData.testMode || currentMode || "standard";
   window.currentFybiReport = reportData;
 
   questionScreen.classList.add("hidden");
+  startScreen.classList.add("hidden");
   resultScreen.classList.remove("hidden");
 
   resultContent.innerHTML = `
     <div class="result-header-card">
       <p class="test-kicker">拾遗人格测评报告</p>
-      <p class="generated-time">生成时间：${generatedTime}</p>
-      <p class="certificate-number">报告编号：${certificateNo}</p>
+      <p class="generated-time">生成时间：${reportData.generatedTime}</p>
+      <p class="certificate-number">报告编号：${reportData.certificateNo}</p>
 
       <div class="result-main">
         <div>
@@ -1326,44 +1513,87 @@ function showResult() {
     };
   }
 
-const refreshRecommendBtn = document.getElementById("refreshRecommendBtn");
+  const refreshRecommendBtn = document.getElementById("refreshRecommendBtn");
 
-if (refreshRecommendBtn) {
-  refreshRecommendBtn.onclick = () => {
-    if (!currentRecommendationPool || currentRecommendationPool.length <= recommendationBatchSize) {
-      return;
-    }
+  if (refreshRecommendBtn) {
+    refreshRecommendBtn.onclick = () => {
+      if (!currentRecommendationPool || currentRecommendationPool.length <= recommendationBatchSize) {
+        return;
+      }
 
-    const maxBatchCount = Math.ceil(currentRecommendationPool.length / recommendationBatchSize);
-    currentRecommendationBatchIndex = (currentRecommendationBatchIndex + 1) % maxBatchCount;
+      const maxBatchCount = Math.ceil(currentRecommendationPool.length / recommendationBatchSize);
+      currentRecommendationBatchIndex = (currentRecommendationBatchIndex + 1) % maxBatchCount;
 
-    updateRecommendationBatch();
+      updateRecommendationBatch();
 
-    trackShiyiEvent("refresh_fybi_recommendations", {
-      result_code: resultCode,
-      result_name: profile.name,
-      batch_index: currentRecommendationBatchIndex + 1
-    });
-  };
-}
+      trackShiyiEvent("refresh_fybi_recommendations", {
+        result_code: resultCode,
+        result_name: profile.name,
+        batch_index: currentRecommendationBatchIndex + 1
+      });
+    };
+  }
 
   document.getElementById("exportReportBtn").onclick = () => {
     exportFybiReportAsImage(window.currentFybiReport);
   };
 
   document.getElementById("restartBtn").onclick = () => {
+    clearFybiResultUrl();
     resultScreen.classList.add("hidden");
     startScreen.classList.remove("hidden");
   };
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
+  if (shouldUpdateUrl) {
+    updateFybiResultUrl(reportData);
+  }
+
+  if (shouldScroll) {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+
+  if (shouldShowLottery) {
+    setTimeout(() => {
+      tryShowLotteryPopupAfterReportGenerated();
+    }, 350);
+  }
+}
+
+function showResult() {
+  const rawScores = calculateRawScores();
+  const percentScores = calculatePercentScores(rawScores);
+  const resultCode = getResultCode(percentScores);
+  const profile = shiyiProfiles[resultCode];
+  const generatedTime = formatDateTime(new Date());
+  const certificateNo = createFybiCertificateNo(currentMode);
+
+  trackShiyiEvent("complete_fybi_test", {
+    test_mode: currentMode,
+    result_code: resultCode,
+    result_name: profile.name,
+    certificate_no: certificateNo
   });
 
-  setTimeout(() => {
-    tryShowLotteryPopupAfterReportGenerated();
-  }, 350);
+  buildFybiRecommendationPool(resultCode, percentScores);
+
+  const reportData = {
+    resultCode,
+    profile,
+    scores: percentScores,
+    generatedTime,
+    certificateNo,
+    recommendations: getCurrentRecommendationBatch(),
+    testMode: currentMode
+  };
+
+  renderFybiResultReport(reportData, {
+    updateUrl: true,
+    showLottery: true,
+    scroll: true
+  });
 }
 
 document.querySelectorAll(".mode-card").forEach(button => {
@@ -1374,3 +1604,5 @@ document.querySelectorAll(".mode-card").forEach(button => {
 
 nextBtn.onclick = goToNextQuestion;
 prevBtn.onclick = goToPreviousQuestion;
+
+restoreFybiReportFromUrl();

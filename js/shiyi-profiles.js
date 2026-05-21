@@ -2,7 +2,7 @@ const shiyiProfiles = {
   EHLM: {
     code: "EHLM",
     name: "烟火匠心型非遗守护人",
-    image: "images/shiyi-profiles/EHLM.png",
+    image: "images/fybi-avatars/base/FYBI_EHLM_v1.png",
     keywords: ["生活感知", "动手体验", "烟火气", "匠心温度"],
     dimensions: {
       EI: "E 外显型",
@@ -22,7 +22,7 @@ const shiyiProfiles = {
   EHLP: {
     code: "EHLP",
     name: "民俗热场型非遗守护人",
-    image: "images/shiyi-profiles/EHLP.png",
+    image: "images/fybi-avatars/base/FYBI_EHLP_v1.png",
     keywords: ["现场互动", "节庆氛围", "民俗体验", "热情表达"],
     dimensions: {
       EI: "E 外显型",
@@ -42,7 +42,7 @@ const shiyiProfiles = {
   EHTM: {
     code: "EHTM",
     name: "古法体验型非遗守护人",
-    image: "images/shiyi-profiles/EHTM.png",
+    image: "images/fybi-avatars/base/FYBI_EHTM_v1.png",
     keywords: ["古法工艺", "沉浸体验", "传统技艺", "手作探索"],
     dimensions: {
       EI: "E 外显型",
@@ -62,7 +62,7 @@ const shiyiProfiles = {
   EHTP: {
     code: "EHTP",
     name: "仪式共鸣型非遗守护人",
-    image: "images/shiyi-profiles/EHTP.png",
+    image: "images/fybi-avatars/base/FYBI_EHTP_v1.png",
     keywords: ["仪式感", "现场共鸣", "传统表演", "集体记忆"],
     dimensions: {
       EI: "E 外显型",
@@ -82,7 +82,7 @@ const shiyiProfiles = {
   ECLM: {
     code: "ECLM",
     name: "生活美学型非遗守护人",
-    image: "images/shiyi-profiles/ECLM.png",
+    image: "images/fybi-avatars/base/FYBI_ECLM_v1.png",
     keywords: ["生活美学", "内容共创", "手作传播", "视觉表达"],
     dimensions: {
       EI: "E 外显型",
@@ -102,7 +102,7 @@ const shiyiProfiles = {
   ECLP: {
     code: "ECLP",
     name: "影像传播型非遗守护人",
-    image: "images/shiyi-profiles/ECLP.png",
+    image: "images/fybi-avatars/base/FYBI_ECLP_v1.png",
     keywords: ["短视频", "现场记录", "传播策划", "青年表达"],
     dimensions: {
       EI: "E 外显型",
@@ -122,7 +122,7 @@ const shiyiProfiles = {
   ECTM: {
     code: "ECTM",
     name: "文创策划型非遗守护人",
-    image: "images/shiyi-profiles/ECTM.png",
+    image: "images/fybi-avatars/base/FYBI_ECTM_v1.png",
     keywords: ["文创转化", "策展思维", "传统新生", "项目策划"],
     dimensions: {
       EI: "E 外显型",
@@ -142,7 +142,7 @@ const shiyiProfiles = {
   ECTP: {
     code: "ECTP",
     name: "舞台创意型非遗守护人",
-    image: "images/shiyi-profiles/ECTP.png",
+    image: "images/fybi-avatars/base/FYBI_ECTP_v1.png",
     keywords: ["舞台表达", "表演创新", "活动策划", "传统转译"],
     dimensions: {
       EI: "E 外显型",
@@ -162,7 +162,7 @@ const shiyiProfiles = {
   IHLM: {
     code: "IHLM",
     name: "静观手作型非遗守护人",
-    image: "images/shiyi-profiles/IHLM.png",
+    image: "images/fybi-avatars/base/FYBI_IHLM_v1.png",
     keywords: ["安静体验", "细节观察", "手作研习", "生活技艺"],
     dimensions: {
       EI: "I 内省型",
@@ -182,7 +182,7 @@ const shiyiProfiles = {
   IHLP: {
     code: "IHLP",
     name: "民俗观察型非遗守护人",
-    image: "images/shiyi-profiles/IHLP.png",
+    image: "images/fybi-avatars/base/FYBI_IHLP_v1.png",
     keywords: ["田野观察", "民俗现场", "地方生活", "细腻记录"],
     dimensions: {
       EI: "I 内省型",
@@ -202,7 +202,7 @@ const shiyiProfiles = {
   IHTM: {
     code: "IHTM",
     name: "草木寻源型非遗守护人",
-    image: "images/shiyi-profiles/IHTM.png",
+    image: "images/fybi-avatars/base/FYBI_IHTM_v1.png",
     keywords: ["草本智慧", "古法寻源", "实地探访", "传统知识"],
     dimensions: {
       EI: "I 内省型",
@@ -223,7 +223,7 @@ const shiyiProfiles = {
   IHTP: {
     code: "IHTP",
     name: "礼俗探源型非遗守护人",
-    image: "images/shiyi-profiles/IHTP.png",
+    image: "images/fybi-avatars/base/FYBI_IHTP_v1.png",
     keywords: ["仪式研究", "礼俗观察", "传统表演", "文化根脉"],
     dimensions: {
       EI: "I 内省型",
@@ -243,7 +243,7 @@ const shiyiProfiles = {
   ICLM: {
     code: "ICLM",
     name: "文脉整理型非遗守护人",
-    image: "images/shiyi-profiles/ICLM.png",
+    image: "images/fybi-avatars/base/FYBI_ICLM_v1.png",
     keywords: ["资料整理", "图文写作", "生活档案", "文化梳理"],
     dimensions: {
       EI: "I 内省型",
@@ -263,7 +263,7 @@ const shiyiProfiles = {
   ICLP: {
     code: "ICLP",
     name: "声影记录型非遗守护人",
-    image: "images/shiyi-profiles/ICLP.png",
+    image: "images/fybi-avatars/base/FYBI_ICLP_v1.png",
     keywords: ["影像记录", "声音采集", "民俗档案", "观察叙事"],
     dimensions: {
       EI: "I 内省型",
@@ -283,7 +283,7 @@ const shiyiProfiles = {
   ICTM: {
     code: "ICTM",
     name: "古籍考据型非遗守护人",
-    image: "images/shiyi-profiles/ICTM.png",
+    image: "images/fybi-avatars/base/FYBI_ICTM_v1.png",
     keywords: ["文献整理", "历史考据", "古法研究", "知识转译"],
     dimensions: {
       EI: "I 内省型",
@@ -303,7 +303,7 @@ const shiyiProfiles = {
   ICTP: {
     code: "ICTP",
     name: "戏韵解码型非遗守护人",
-    image: "images/shiyi-profiles/ICTP.png",
+    image: "images/fybi-avatars/base/FYBI_ICTP_v1.png",
     keywords: ["表演研究", "戏曲解读", "传统审美", "文化转译"],
     dimensions: {
       EI: "I 内省型",
