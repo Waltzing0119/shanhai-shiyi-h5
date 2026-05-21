@@ -85,13 +85,13 @@ function getLotteryPopup() {
 
       <p class="fybi-lottery-main-text">
         \u606d\u559c\u4f60\u5b8c\u6210\u975e\u9057 FYBI \u6d4b\u8bc4\uff01<br>
-        \u73b0\u5728\u626b\u7801\u8fdb\u5165\u516c\u6d4b\u62bd\u5956\u7fa4\uff0c\u5373\u53ef\u53c2\u4e0e\u7b2c\u4e00\u8f6e\u5976\u8336\u62bd\u5956\u3002
+        现在扫码进入公测群，即可参与一轮奶茶抽奖！！
       </p>
 
       <p class="fybi-lottery-note">
         \u62bd\u4e2d\u540e\u51ed\u4f60\u7684 FYBI \u62a5\u544a/\u8bc1\u4e66\u622a\u56fe\u6838\u9a8c\u8d44\u683c\u3002<br>
         \u8f6c\u53d1\u5e73\u53f0\u5ba3\u4f20\u5185\u5bb9\uff0c\u8fd8\u53ef\u53c2\u4e0e\u7b2c\u4e8c\u8f6e\u62bd\u5956\u3002<br>
-        \u4eca\u665a 23:30 \u5f00\u5956\uff01
+        2026.5.22 21:00 \u5f00\u5956\uff01
       </p>
 
       <div class="fybi-lottery-qrcode-wrap">
