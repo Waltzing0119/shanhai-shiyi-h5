@@ -311,12 +311,11 @@ function buildRecommendationReason(userResult, project, role) {
   return `你的测评结果呈现出“${dimensionText}”等倾向，${project.name}在“${project.category}”方向上与你的兴趣画像较为契合。${role.desc}`;
 }
 
-function getNationalHeritageRecommendations(userResult, options = {}) {
-  const count = options.count || nationalHeritageRecommendConfig?.maxRecommendCount || 3;
+function getScoredNationalHeritageProjects(userResult) {
   const scores = normalizeUserScores(userResult.scores || {});
   const code = userResult.code || getCodeFromScores(scores);
 
-  const scoredProjects = nationalHeritageProjects
+  return nationalHeritageProjects
     .map(project => {
       const recommendationScore = getRecommendationScore(
         {
@@ -334,14 +333,17 @@ function getNationalHeritageRecommendations(userResult, options = {}) {
       };
     })
     .sort((a, b) => b.totalScore - a.totalScore);
+}
 
-  const selectedProjects = selectDiversifiedProjects(scoredProjects, count);
+function formatRecommendationItems(items, userResult) {
+  const scores = normalizeUserScores(userResult.scores || {});
+  const code = userResult.code || getCodeFromScores(scores);
 
-  return selectedProjects.map((item, index) => {
-    const role = getRecommendationRole(index);
+  return items.map((item, index) => {
+    const role = getRecommendationRole(index % 3);
 
     return {
-      rank: index + 1,
+      rank: (index % 3) + 1,
       role: role.title,
       reason: buildRecommendationReason(
         {
@@ -357,6 +359,24 @@ function getNationalHeritageRecommendations(userResult, options = {}) {
       scoreBreakdown: item.scoreBreakdown
     };
   });
+}
+
+function getNationalHeritageRecommendationPool(userResult, options = {}) {
+  const poolSize = options.poolSize || 30;
+  const scoredProjects = getScoredNationalHeritageProjects(userResult);
+
+  return formatRecommendationItems(
+    scoredProjects.slice(0, poolSize),
+    userResult
+  );
+}
+
+function getNationalHeritageRecommendations(userResult, options = {}) {
+  const count = options.count || nationalHeritageRecommendConfig?.maxRecommendCount || 3;
+  const scoredProjects = getScoredNationalHeritageProjects(userResult);
+  const selectedProjects = selectDiversifiedProjects(scoredProjects, count);
+
+  return formatRecommendationItems(selectedProjects, userResult);
 }
 
 function getRecommendationDebugResult() {
@@ -380,6 +400,7 @@ function getRecommendationDebugResult() {
 window.shiyiRecommender = {
   getCodeFromScores,
   getNationalHeritageRecommendations,
+  getNationalHeritageRecommendationPool,
   getRecommendationDebugResult,
   getVectorSimilarityScore,
   getTagMatchScore

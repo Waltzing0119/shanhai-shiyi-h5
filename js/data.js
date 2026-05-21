@@ -496,19 +496,6 @@ const heritageList = [
     locationLeft: "69%"
   },
   {
-    area: "惠州市博罗县长宁镇、福田镇、横河镇等罗浮山下乡镇",
-    category: "民俗",
-    heritageLevel: "县级",
-    popularity: 78,
-    tags: ["县级", "民俗", "七夕", "取水习俗"],
-    intro:
-      "博罗七夕取水习俗流布于罗浮山周边乡镇，与节令民俗、山水信仰和地方生活经验相关。",
-    story:
-      "七夕取水体现了地方群众对自然、节令和生活智慧的理解，适合以民俗故事和实地采风方式展示。",
-    locationTop: "49%",
-    locationLeft: "50%"
-  },
-  {
     id: "shangnan-xingshi",
     name: "狮舞（上南醒狮）",
     town: "上南片区",

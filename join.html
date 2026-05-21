@@ -50,16 +50,65 @@
 
       <br />
 
-      <h3>填写合作申请</h3>
+      <h3>联系我们</h3>
       <p>
-        请点击下方链接填写合作申请表。你可以先用腾讯文档、问卷星或金数据创建一个表单，
-        然后把这里的链接替换成你的表单链接。
+        如你希望入驻平台、补充非遗项目信息，或与“山海拾遗”实践团开展合作，
+        可点击下方按钮查看微信二维码并添加联系。
       </p>
 
-      <a class="form-link" href="https://docs.qq.com" target="_blank">
-        填写合作入驻申请表
-      </a>
+      <button class="form-link contact-button" id="openContactModal" type="button">
+        联系我们
+      </button>
     </section>
   </main>
+
+    <div class="contact-modal hidden" id="contactModal">
+    <div class="contact-modal-mask" id="closeContactMask"></div>
+
+    <div class="contact-modal-card">
+      <button class="contact-modal-close" id="closeContactModal" type="button">×</button>
+
+      <h2>联系我们</h2>
+      <p>扫码添加微信，备注“山海拾遗入驻/合作”。</p>
+
+      <div class="wechat-qr-box">
+        <img src="images/contact/wechat-qr.jpg" alt="山海拾遗联系微信二维码" />
+      </div>
+
+      <p class="contact-modal-tip">
+        欢迎非遗传承人、协会组织、高校团队和文旅单位联系合作。
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const openContactModal = document.getElementById("openContactModal");
+    const contactModal = document.getElementById("contactModal");
+    const closeContactModal = document.getElementById("closeContactModal");
+    const closeContactMask = document.getElementById("closeContactMask");
+
+    function showContactModal() {
+      contactModal.classList.remove("hidden");
+
+      trackShiyiEvent("open_contact_qr", {
+        entry_position: "join_page",
+        entry_text: "联系我们"
+      });
+    }
+
+    function hideContactModal() {
+      contactModal.classList.add("hidden");
+    }
+
+    openContactModal.onclick = showContactModal;
+    closeContactModal.onclick = hideContactModal;
+    closeContactMask.onclick = hideContactModal;
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        hideContactModal();
+      }
+    });
+  </script>
 </body>
 </html>
